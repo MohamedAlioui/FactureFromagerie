@@ -75,7 +75,7 @@ function generateInvoiceHTML(invoice) {
                   <p class="text-sm text-gray-700 mb-1">Zhena, Utique Bizerte</p>
                   <p class="text-sm text-gray-700 mb-1"><strong>TEL:</strong> 98136638</p>
                   <p class="text-sm text-gray-700"><strong>MF:</strong> 1798066/G</p>
-                  <p class="text-sm text-gray-700">Livreur : ${"Alioui Mohamed"}</p>
+                  <p class="text-sm text-gray-700">Livreur : ${"Alioui Abdelmonaam"}</p>
                 </div>
               </div>
               <!-- Right side - Invoice Info and Client Details -->
