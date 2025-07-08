@@ -1,16 +1,30 @@
 {
-  "installCommand": "npm install --legacy-peer-deps",
   "version": 2,
+  "name": "fromagerie-fullstack",
+  "buildCommand": "npm run build:full",
+  "installCommand": "npm install && cd ../frontend && npm install",
   "builds": [
     {
-      "src": "api/index.js",
+      "src": "server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/server.js"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "server.js": {
+      "maxDuration": 30
+    }
+  }
 }
