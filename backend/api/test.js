@@ -1,22 +1,9 @@
-import express from "express";
-
-const app = express();
-
-app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.json({ 
-    message: "Test API is working!",
-    timestamp: new Date().toISOString()
+export default function handler(req, res) {
+  res.status(200).json({
+    message: "✅ Vercel deployment is working!",
+    method: req.method,
+    url: req.url,
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
-});
-
-app.get("/api/test", (req, res) => {
-  res.json({ 
-    status: "OK",
-    message: "Test endpoint working",
-    timestamp: new Date().toISOString()
-  });
-});
-
-export default app; 
+} 
