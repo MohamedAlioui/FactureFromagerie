@@ -4,6 +4,23 @@ import { generateInvoicePDF } from '../utils/pdfGenerator.js';
 
 const router = express.Router();
 
+// Helper function to calculate totals
+const calculateInvoiceTotals = (invoiceData) => {
+  const totalHT = invoiceData.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+  const totalTVA = totalHT * 0.19; // 19% TVA
+  const timbre = invoiceData.timbre || 0.1;
+  const totalRemise = invoiceData.totalRemise || 0;
+  const totalTTC = totalHT + totalTVA + timbre - totalRemise;
+  
+  return {
+    totalHT,
+    totalTVA,
+    timbre,
+    totalRemise,
+    totalTTC
+  };
+};
+
 // Get all invoices
 router.get('/', async (req, res) => {
   try {
@@ -39,9 +56,13 @@ router.post('/', async (req, res) => {
     }
     const invoiceNumber = `BCC${nextNumber.toString().padStart(3, '0')}`;
 
+    // Calculate totals
+    const calculatedTotals = calculateInvoiceTotals(req.body);
+
     const invoice = new Invoice({
       ...req.body,
-      invoiceNumber
+      invoiceNumber,
+      ...calculatedTotals
     });
 
     const savedInvoice = await invoice.save();
@@ -54,9 +75,15 @@ router.post('/', async (req, res) => {
 // Update invoice
 router.put('/:id', async (req, res) => {
   try {
+    // Calculate totals
+    const calculatedTotals = calculateInvoiceTotals(req.body);
+
     const invoice = await Invoice.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      {
+        ...req.body,
+        ...calculatedTotals
+      },
       { new: true }
     );
     if (!invoice) {

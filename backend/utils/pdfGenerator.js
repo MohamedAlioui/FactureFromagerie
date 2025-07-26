@@ -75,7 +75,7 @@ function generateInvoiceHTML(invoice) {
                   <p class="text-sm text-gray-700 mb-1">Zhena, Utique Bizerte</p>
                   <p class="text-sm text-gray-700 mb-1"><strong>TEL:</strong> 98136638</p>
                   <p class="text-sm text-gray-700"><strong>MF:</strong> 1798066/G</p>
-                  <p class="text-sm text-gray-700">Livreur : ${"Alioui Abdelmonaam"}</p>
+                  <p class="text-sm text-gray-700">Livreur :Alioui Ayoub</p>
                 </div>
               </div>
               <!-- Right side - Invoice Info and Client Details -->
@@ -145,6 +145,12 @@ function generateInvoiceHTML(invoice) {
                 <td class="border border-black px-4 py-2 bg-gray-100 font-bold">Montant Total HT</td>
                 <td class="border border-black px-4 py-2 text-right">${formatCurrency(
                   invoice.totalHT || 0
+                )}</td>
+              </tr>
+              <tr>
+                <td class="border border-black px-4 py-2 bg-gray-100 font-bold">TVA (19%)</td>
+                <td class="border border-black px-4 py-2 text-right">${formatCurrency(
+                  invoice.totalHT *0.19 || 0
                 )}</td>
               </tr>
               <tr>
