@@ -10,29 +10,6 @@ const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
-// Create demo user on first run
-const createDemoUser = async () => {
-  try {
-    const existingDemo = await User.findOne({ username: "demo" });
-    if (!existingDemo) {
-      const demoUser = new User({
-        username: "demo",
-        email: "demo@fromagerie-alioui.com",
-        password: "demo123",
-        role: "admin",
-      });
-      await demoUser.save();
-      console.log(
-        "✅ Demo user created successfully: username=demo, password=demo123"
-      );
-    } else {
-      console.log("✅ Demo user already exists");
-    }
-  } catch (error) {
-    console.error("❌ Error creating demo user:", error);
-  }
-};
-
 // Register new user
 router.post("/register", async (req, res) => {
   try {
@@ -219,8 +196,5 @@ router.put("/change-password", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-// Initialize demo user when routes are loaded
-createDemoUser();
 
 export default router;

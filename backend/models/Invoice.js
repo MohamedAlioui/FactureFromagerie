@@ -40,7 +40,6 @@ const invoiceSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
   clientMF: {
     type: String,
     required: true,
@@ -60,6 +59,18 @@ const invoiceSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
+  totalTVA: {
+    // Add this field
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  timbre: {
+    // Add this field
+    type: Number,
+    default: 0.1,
+    min: 0,
+  },
   totalRemise: {
     type: Number,
     default: 0,
@@ -69,6 +80,14 @@ const invoiceSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0,
+  },
+  withTVA: {
+    type: Boolean,
+    default: true,
+  },
+  pinned: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,

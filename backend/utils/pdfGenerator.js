@@ -74,8 +74,10 @@ function generateInvoiceHTML(invoice) {
                   <h3 class="text-lg font-bold text-gray-900 mb-2">Fromagerie Alioui</h3>
                   <p class="text-sm text-gray-700 mb-1">Zhena, Utique Bizerte</p>
                   <p class="text-sm text-gray-700 mb-1"><strong>TEL:</strong> 98136638</p>
-                  <p class="text-sm text-gray-700"><strong>MF:</strong> 1798066/G</p>
-                  <p class="text-sm text-gray-700">Livreur :Alioui Ayoub</p>
+                  <p class="text-sm text-gray-700"><strong>MF:</strong> 1718082/N</p>
+                  <p class="text-sm text-gray-700">Livreur: <strong>${
+                    invoice.livreurNom || "AbdelMonaam Alioui"
+                  }</strong></p>
                 </div>
               </div>
               <!-- Right side - Invoice Info and Client Details -->
@@ -96,9 +98,7 @@ function generateInvoiceHTML(invoice) {
                   <p class="text-sm mb-4"><strong>MF:</strong> ${
                     invoice.clientMF || ""
                   }</p>
-                  <p class="text-sm font-bold"><strong>Date:</strong> ${formatDate(
-                    invoice.date
-                  )}</p>
+                  <p class="text-sm font-bold"><strong>Date:</strong> </p>
                 </div>
               </div>
             </div>
@@ -109,7 +109,7 @@ function generateInvoiceHTML(invoice) {
             <thead>
               <tr class="bg-gray-100">
                 <th class="border border-black px-4 py-2 text-left font-bold">Désignation Article</th>
-                <th class="border border-black px-4 py-2 text-center font-bold">Quantité (kg)</th>
+                <th class="border border-black px-4 py-2 text-center font-bold">Quantité</th>
                 <th class="border border-black px-4 py-2 text-center font-bold">Prix Uni. TTC</th>
                 <th class="border border-black px-4 py-2 text-center font-bold">Montant TTC</th>
               </tr>
@@ -150,12 +150,18 @@ function generateInvoiceHTML(invoice) {
               <tr>
                 <td class="border border-black px-4 py-2 bg-gray-100 font-bold">TVA (19%)</td>
                 <td class="border border-black px-4 py-2 text-right">${formatCurrency(
-                  invoice.totalHT *0.19 || 0
+                  invoice.withTVA !== false ? (invoice.totalHT || 0) * 0.19 : 0
+                )}</td>
+              </tr>
+              <tr>
+                <td class="border border-black px-4 py-2 bg-gray-100 font-bold">Timbre</td>
+                <td class="border border-black px-4 py-2 text-right">${formatCurrency(
+                  invoice.timbre || 0.1
                 )}</td>
               </tr>
               <tr>
                 <td class="border border-black px-4 py-2 bg-gray-100 font-bold">Total REMISE</td>
-                <td class="border border-black px-4 py-2 text-right">${formatCurrency(
+                <td class="border border-black px-4 py-2 text-right">-${formatCurrency(
                   invoice.totalRemise || 0
                 )}</td>
               </tr>
@@ -170,7 +176,7 @@ function generateInvoiceHTML(invoice) {
 
           <!-- Footer Section -->
           <div class="border border-black p-4 mb-6 h-32">
-            <p class="font-bold text-sm">Arrêté Le présent la facture à la somme de ${formatCurrency(
+            <p class="font-bold text-sm">Arrêté la présente facture à la somme de ${formatCurrency(
               invoice.totalTTC || 0
             )}.</p>
           </div>

@@ -1,30 +1,34 @@
-import express from 'express';
-import Invoice from '../models/Invoice.js';
-import { generateInvoicePDF } from '../utils/pdfGenerator.js';
+import express from "express";
+import Invoice from "../models/Invoice.js";
+import { generateInvoicePDF } from "../utils/pdfGenerator.js";
 
 const router = express.Router();
 
 // Helper function to calculate totals
 const calculateInvoiceTotals = (invoiceData) => {
-  const totalHT = invoiceData.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
-  const totalTVA = totalHT * 0.19; // 19% TVA
-  const timbre = invoiceData.timbre || 0.1;
+  const totalHT = invoiceData.items.reduce(
+    (sum, item) => sum + (item.totalPrice || 0),
+    0
+  );
+  const totalTVA = invoiceData.withTVA !== false ? totalHT * 0.19 : 0; // 19% TVA if withTVA is true, otherwise 0
+  const timbre = invoiceData.timbre || 0.1; // Default timbre
   const totalRemise = invoiceData.totalRemise || 0;
   const totalTTC = totalHT + totalTVA + timbre - totalRemise;
-  
+
   return {
     totalHT,
-    totalTVA,
-    timbre,
+    totalTVA, // Make sure this is included
+    timbre, // Make sure this is included
     totalRemise,
-    totalTTC
+    totalTTC,
   };
 };
 
 // Get all invoices
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const invoices = await Invoice.find().sort({ createdAt: -1 });
+    // Sort by pinned first (true values first), then by creation date descending
+    const invoices = await Invoice.find().sort({ pinned: -1, createdAt: -1 });
     res.json(invoices);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -32,11 +36,11 @@ router.get('/', async (req, res) => {
 });
 
 // Get single invoice
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const invoice = await Invoice.findById(req.params.id);
     if (!invoice) {
-      return res.status(404).json({ message: 'Invoice not found' });
+      return res.status(404).json({ message: "Invoice not found" });
     }
     res.json(invoice);
   } catch (error) {
@@ -45,16 +49,16 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new invoice
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     // Generate invoice number
     const lastInvoice = await Invoice.findOne().sort({ createdAt: -1 });
     let nextNumber = 1;
     if (lastInvoice) {
-      const lastNumber = parseInt(lastInvoice.invoiceNumber.split('BCC')[1]);
+      const lastNumber = parseInt(lastInvoice.invoiceNumber.split("BCC")[1]);
       nextNumber = lastNumber + 1;
     }
-    const invoiceNumber = `BCC${nextNumber.toString().padStart(3, '0')}`;
+    const invoiceNumber = `BCC${nextNumber.toString().padStart(3, "0")}`;
 
     // Calculate totals
     const calculatedTotals = calculateInvoiceTotals(req.body);
@@ -62,7 +66,7 @@ router.post('/', async (req, res) => {
     const invoice = new Invoice({
       ...req.body,
       invoiceNumber,
-      ...calculatedTotals
+      ...calculatedTotals,
     });
 
     const savedInvoice = await invoice.save();
@@ -73,7 +77,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update invoice
-router.put('/:id', async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     // Calculate totals
     const calculatedTotals = calculateInvoiceTotals(req.body);
@@ -82,12 +86,12 @@ router.put('/:id', async (req, res) => {
       req.params.id,
       {
         ...req.body,
-        ...calculatedTotals
+        ...calculatedTotals,
       },
       { new: true }
     );
     if (!invoice) {
-      return res.status(404).json({ message: 'Invoice not found' });
+      return res.status(404).json({ message: "Invoice not found" });
     }
     res.json(invoice);
   } catch (error) {
@@ -96,31 +100,57 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete invoice
-router.delete('/:id', async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const invoice = await Invoice.findByIdAndDelete(req.params.id);
     if (!invoice) {
-      return res.status(404).json({ message: 'Invoice not found' });
+      return res.status(404).json({ message: "Invoice not found" });
     }
-    res.json({ message: 'Invoice deleted successfully' });
+    res.json({ message: "Invoice deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
 // Generate PDF
-router.get('/:id/pdf', async (req, res) => {
+router.get("/:id/pdf", async (req, res) => {
   try {
     const invoice = await Invoice.findById(req.params.id);
     if (!invoice) {
-      return res.status(404).json({ message: 'Invoice not found' });
+      return res.status(404).json({ message: "Invoice not found" });
     }
 
     const pdfBuffer = await generateInvoicePDF(invoice);
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="facture-${invoice.invoiceNumber}.pdf"`);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="facture-${invoice.invoiceNumber}.pdf"`
+    );
     res.send(pdfBuffer);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Toggle pin status of invoice
+router.patch("/:id/pin", async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+
+    // Toggle the pinned status
+    invoice.pinned = !invoice.pinned;
+    const updatedInvoice = await invoice.save();
+
+    res.json({
+      message: `Invoice ${
+        updatedInvoice.pinned ? "pinned" : "unpinned"
+      } successfully`,
+      invoice: updatedInvoice,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
